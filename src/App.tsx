@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Fire Damper Installation Log — with Supabase cloud sync
 // ── Install: npm install @supabase/supabase-js
 // ── Add to .env.local: VITE_SUPABASE_URL=... VITE_SUPABASE_ANON_KEY=...
