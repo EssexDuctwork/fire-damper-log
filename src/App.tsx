@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import { generateProjectPDF } from "./pdfExport";
 
 // ── Supabase client ───────────────────────────────────────────────────────
 const SUPA_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -2146,6 +2147,14 @@ function Dashboard({
     return pc > 0 && pc < 6;
   }).length;
   const pending = logs.filter((l) => l.synced === false).length;
+  const sites = [...new Set(logs.map(l => l.site_name).filter(Boolean))].sort();
+const [exporting, setExporting] = useState(null);
+
+const handleExport = async (site) => {
+  setExporting(site);
+  try { await generateProjectPDF(site, logs); }
+  finally { setExporting(null); }
+};
   const notLogged = schedules.flatMap((s) =>
     s.dampers.filter((d) => !d.log_id)
   ).length;
@@ -2527,6 +2536,32 @@ function Dashboard({
       )}
 
       {/* Unlogged scheduled dampers */}
+      {sites.length > 0 && (
+  <Card style={{ marginBottom: 12 }}>
+    <p style={{ margin: "0 0 10px", fontWeight: 500, fontSize: 14 }}>
+      <i className="ti ti-file-export" style={{ fontSize: 16, verticalAlign: -2, marginRight: 6, color: AMBER }} />
+      Export project to PDF
+    </p>
+    {sites.map(site => (
+      <div key={site} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 10px", border: "0.5px solid var(--color-border-tertiary)", borderRadius: "var(--border-radius-md)", marginBottom: 6, background: "var(--color-background-primary)" }}>
+        <div>
+          <p style={{ margin: 0, fontSize: 13, fontWeight: 500 }}>{site}</p>
+          <p style={{ margin: 0, fontSize: 11, color: "var(--color-text-secondary)" }}>
+            {logs.filter(l => l.site_name === site).length} dampers · {logs.filter(l => l.site_name === site && (l.photo_count ?? l.photoCount ?? 0) === 6).length} complete
+          </p>
+        </div>
+        <button
+          onClick={() => handleExport(site)}
+          disabled={exporting === site}
+          style={{ padding: "7px 14px", borderRadius: "var(--border-radius-md)", border: "none", background: exporting === site ? "var(--color-border-tertiary)" : AMBER, color: "#fff", cursor: exporting === site ? "not-allowed" : "pointer", fontSize: 12, fontWeight: 500, display: "flex", alignItems: "center", gap: 5 }}>
+          {exporting === site
+            ? <><i className="ti ti-loader-2" style={{ fontSize: 13, animation: "spin 1s linear infinite" }} /> Generating…</>
+            : <><i className="ti ti-download" style={{ fontSize: 13 }} /> Export PDF</>}
+        </button>
+      </div>
+    ))}
+  </Card>
+)}
       {notLogged > 0 && (
         <div
           style={{
