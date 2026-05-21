@@ -2147,14 +2147,7 @@ function Dashboard({
     return pc > 0 && pc < 6;
   }).length;
   const pending = logs.filter((l) => l.synced === false).length;
-  const sites = [...new Set(logs.map(l => l.site_name).filter(Boolean))].sort();
-const [exporting, setExporting] = useState(null);
-
-const handleExport = async (site) => {
-  setExporting(site);
-  try { await generateProjectPDF(site, logs); }
-  finally { setExporting(null); }
-};
+  
   const notLogged = schedules.flatMap((s) =>
     s.dampers.filter((d) => !d.log_id)
   ).length;
